@@ -92,7 +92,7 @@ def new(path: str):
 
     for root, _, files in os.walk(target):
         for name in files:
-            if name in core.IGNORED_FILES:
+            if name in core.DEFAULT_IGNORED_FILES:
                 continue
             
             # root contains the name of target directory as well
@@ -157,6 +157,60 @@ def list_():
 
     click.secho(f'\n{count if count > 0 else "No"} boilerplates listed.', bold=True, fg='blue')
 
+@cli.command('init')
+@click.argument('name')
+@click.argument('path', type=click.Path(file_okay=False, dir_okay=True, readable=True))
+def init(name: str, path: str):
+    """Generates the boilerplate at the given path.
+
+    The argument NAME represents the name of boilerplate to generate
+    and PATH represents the location where it should be generated.
+
+    If the directory that PATH points do doesn't exist, it will
+    be created.
+    """
+    click.echo('Initializing boilerplate...')
+
+    target = core.ensure_bplate_data_dir('boilerplates')
+    data_path = pathlib.Path(os.path.join(target, name))
+    cfg_path = os.path.join(data_path, 'bplate_config.json')
+
+    if not os.path.exists(cfg_path):
+        raise core.click_error('No boilerplate with name %r exists.' % name)
+
+    try:
+        with open(cfg_path, 'r') as f:
+            config = json.loads(f.read())  # type: ignore
+    except Exception as f:
+        raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
+
+    if not os.path.exists(path):
+        click.secho('Creating target directory...')
+        os.makedirs(path)
+
+    click.secho('Copying files...')
+    files_copied = 0
+
+    for root, _, files in os.walk(data_path):
+        for name in files:
+            if name in core.DEFAULT_IGNORED_INIT_FILES:
+                continue
+
+            # Get parts from after ".bplate-data/boilerplates/<boilerplate-name>"
+            # XXX: This seems like a hack, maybe a better workaround?
+            parts = list(pathlib.Path(root).parts)
+            parts = parts[parts.index('.bplate-data')+3:]
+
+            target_path = os.path.join(path, *parts)
+
+            if not os.path.exists(target_path):
+                os.makedirs(target_path)
+
+            shutil.copy2(os.path.join(root, name), target_path)
+            files_copied += 1
+
+    click.secho(f'Copied {files_copied} files successfully.')
+    click.secho('[!] Boilerplate has been generated successfully.', fg='green')
 
 if __name__ == '__main__':
     cli()

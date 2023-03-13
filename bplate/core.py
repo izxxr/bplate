@@ -29,13 +29,19 @@ import click
 import pathlib
 
 __all__ = (
-    'IGNORED_FILES',
+    'DEFAULT_IGNORED_FILES',
+    'DEFAULT_IGNORED_INIT_FILES',
     'ensure_bplate_data_dir',
     'click_error',
 )
 
 
-IGNORED_FILES = ('.git',)
+DEFAULT_IGNORED_FILES = (
+    '.git',
+)
+DEFAULT_IGNORED_INIT_FILES = (
+    'bplate_config.json',
+)
 
 
 def ensure_bplate_data_dir(subdir: Optional[str] = None) -> pathlib.Path:
