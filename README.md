@@ -18,7 +18,6 @@ To start using bplate, you first need to store a directory as boilerplate templa
 order to do that, use the `bplate new` followed by path of directory:
 ```
 bplate new .\web-app-template
-
 ```
 
 When prompted for boilerplate name, enter a name which will be used to reference to
