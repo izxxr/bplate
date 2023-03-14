@@ -23,12 +23,13 @@
 from __future__ import annotations
 
 from typing import List
-from bplate import core
+from bplate import core, __version__
 
 import click
 import pathlib
 import shutil
 import os
+import platform
 import json
 
 
@@ -36,6 +37,15 @@ import json
 def cli():
     pass
 
+@cli.command('version')
+@click.option('--all', is_flag=True, default=False, help="Show other information about bplate and user's machine.")
+def version(all: bool):
+    if not all:
+        click.echo(__version__)
+        return
+    
+    click.echo(f'Version: {__version__}')
+    click.echo(f'Platform: {platform.platform()} {platform.architecture()[0]}')
 
 @cli.command()
 @click.argument('path', type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True))
