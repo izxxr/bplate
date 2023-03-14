@@ -22,7 +22,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import Set
 from bplate import core, __version__
 
 import click
@@ -100,13 +100,27 @@ def new(path: str):
     data.mkdir()
 
     files_copied = 0
-    ignored_files: List[str] = config.get('ignore_files', []) if config else []
+    ignored_files: Set[str] = set(config.get('ignore_files', []) if config else [])
+    ignored_files = ignored_files.union(core.DEFAULT_IGNORED_FILES)
+
+    for file in ignored_files:
+        # Handle ignored directories
+        # __pycache__/ needs to be changed to __pycache__/*
+        # in order for Path.match() to match it.
+        if file.endswith('/'):
+            ignored_files.remove(file)
+            file += '*'
+        ignored_files.add(file)
 
     for root, _, files in os.walk(target):
         for name in files:
-            if name in core.DEFAULT_IGNORED_FILES or name in ignored_files:
+            if name in ignored_files:
                 continue
             
+            file_path = pathlib.Path(os.path.join(root, name))
+            if any(file_path.match(file) for file in ignored_files):
+                continue
+
             # root contains the name of target directory as well
             # we only need the names of subdirectories so we will
             # remove the first part of the path.

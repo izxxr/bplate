@@ -37,8 +37,10 @@ __all__ = (
 
 
 DEFAULT_IGNORED_FILES = (
-    '.git',
+    '.git/',
+    '__pycache__/',
 )
+
 DEFAULT_IGNORED_INIT_FILES = (
     'bplate_config.json',
 )
