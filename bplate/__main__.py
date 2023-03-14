@@ -22,6 +22,7 @@
 
 from __future__ import annotations
 
+from typing import List
 from bplate import core
 
 import click
@@ -89,10 +90,11 @@ def new(path: str):
     data.mkdir()
 
     files_copied = 0
+    ignored_files: List[str] = config.get('ignore_files', []) if config else []
 
     for root, _, files in os.walk(target):
         for name in files:
-            if name in core.DEFAULT_IGNORED_FILES:
+            if name in core.DEFAULT_IGNORED_FILES or name in ignored_files:
                 continue
             
             # root contains the name of target directory as well
@@ -211,6 +213,35 @@ def init(name: str, path: str):
 
     click.secho(f'Copied {files_copied} files successfully.')
     click.secho('[!] Boilerplate has been generated successfully.', fg='green')
+
+@cli.command('show')
+@click.argument('name')
+def show(name: str):
+    """Shows information about a stored boilerplate.
+
+    The NAME argument represents the boilerplate to show information for.
+    """
+    target = core.ensure_bplate_data_dir('boilerplates')
+    cfg_path = os.path.join(target, name, 'bplate_config.json')
+    if not os.path.exists(cfg_path):
+        raise core.click_error('No boilerplate with name %r exists.' % name)
+
+    try:
+        with open(cfg_path, 'r') as f:
+            config = json.loads(f.read())
+    except Exception as f:
+        raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
+
+    try:
+        name = config['name']
+    except KeyError:
+        raise core.click_error('bplate_config.json does not contain a name key.')
+
+    click.echo(f'Name: {name}')
+    click.echo(f'Description: {config.get("description") or "No description available"}')
+    click.echo(f'Author: {config.get("author") or "No author available"}')
+    click.echo(f'Version: {config.get("version") or "No version available"}')
+    click.echo(f'URL: {config.get("url") or "No URL available"}')
 
 if __name__ == '__main__':
     cli()
