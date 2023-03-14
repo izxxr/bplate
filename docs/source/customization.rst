@@ -88,7 +88,16 @@ Boilerplate Files
     The files and folders to ignore when creating boilerplate. Note that certain files and
     folders are natively ignored by bplate. Some examples are ``.git/`` and ``__pycache__/``.
 
-    The names ending with slash are considered directories.
+    The names ending with slash are considered directories. Patterns can be added to this
+    list to match.
+
+    For example, in order to ignore and files starting with ``test.`` can be ignored by::
+
+        {
+            "ignore_files": [
+                "some_directory/test.*",
+            ]
+        }
 
     :type:
 
