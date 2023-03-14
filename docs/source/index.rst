@@ -71,6 +71,7 @@ For more information, see the ":ref:`contributing`" section.
    commands
    customization
    contributing
+   releases
 
 
 
