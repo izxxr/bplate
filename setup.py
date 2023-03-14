@@ -44,7 +44,7 @@ setup(
         'Intended Audience :: Developers',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python'
+        'Programming Language :: Python',
         'Topic :: Internet',
         'Topic :: Software Development',
         'Topic :: Utilities',
