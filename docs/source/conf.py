@@ -9,7 +9,7 @@
 project = 'bplate'
 copyright = '2023, Izhar Ahmad'
 author = 'Izhar Ahmad'
-release = '0.1.0a1'
+release = '0.1.0'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

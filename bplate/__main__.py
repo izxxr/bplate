@@ -87,7 +87,7 @@ def new(path: str):
     data = boilerplates.joinpath(name)
 
     if data.exists():
-        msg = click.style('[!] Another boilerplate with name %r exists, Overwrite?', fg='red', bold=True)
+        msg = click.style('[!] Another boilerplate with name %r exists, Overwrite?' % name, fg='red', bold=True)
         click.confirm(msg, abort=True)
         shutil.rmtree(data)
 
