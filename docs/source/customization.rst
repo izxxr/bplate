@@ -81,21 +81,18 @@ can be helpful.
 Boilerplate Files
 -----------------
 
-.. _customization-ignore-files:
+.. _customization-ignore-patterns:
 
-.. data:: ignore_files
+.. data:: ignore_patterns
 
-    The files and folders to ignore when creating boilerplate. Note that certain files and
-    folders are natively ignored by bplate. Some examples are ``.git/`` and ``__pycache__/``.
+    The list of glob-style patterns that should be ignored during creation
+    of boilerplate.
 
-    The names ending with slash are considered directories. Patterns can be added to this
-    list to match.
-
-    For example, in order to ignore and files starting with ``test.`` can be ignored by::
+    For example, in order to ignore files starting with ``test.``::
 
         {
-            "ignore_files": [
-                "some_directory/test.*",
+            "ignore_patterns": [
+                "test.*",
             ]
         }
 

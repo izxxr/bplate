@@ -65,7 +65,7 @@ def new(path: str):
 
     name = None
     config = None
-    cfg_path = os.path.join(target, 'bplate_config.json')
+    cfg_path = target / 'bplate_config.json'
 
     if os.path.exists(cfg_path):
         click.secho('bplate_config.json found in root directory, opening.')
@@ -73,14 +73,14 @@ def new(path: str):
             with open(cfg_path, 'r') as f:
                 config = json.loads(f.read())
         except Exception as f:
-            raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
+            raise core.click_error('Failed to load bplate_config.json. The file may be malformed or not openable.')
         else:
             name = config.get('name')
             if name:
                 click.secho('Config successfully loaded.')
     if not name:
         if config:
-            click.secho('Failed to get boilerplate from bplate_config.json')
+            click.secho('Failed to get boilerplate name from bplate_config.json')
         name = click.prompt('[i] Boilerplate name')
 
     assert name is not None
@@ -100,25 +100,12 @@ def new(path: str):
     data.mkdir()
 
     files_copied = 0
-    ignored_files: Set[str] = set(config.get('ignore_files', []) if config else [])
-    ignored_files = ignored_files.union(core.DEFAULT_IGNORED_FILES)
-
-    for file in ignored_files:
-        # Handle ignored directories
-        # __pycache__/ needs to be changed to __pycache__/*
-        # in order for Path.match() to match it.
-        if file.endswith('/'):
-            ignored_files.remove(file)
-            file += '*'
-        ignored_files.add(file)
+    ignored_patterns: Set[str] = set(config.get('ignore_patterns', []) if config else [])
 
     for root, _, files in os.walk(target):
         for name in files:
-            if name in ignored_files:
-                continue
-            
             file_path = pathlib.Path(os.path.join(root, name))
-            if any(file_path.match(file) for file in ignored_files):
+            if any(file_path.match(pat) for pat in ignored_patterns):
                 continue
 
             # root contains the name of target directory as well
@@ -128,7 +115,7 @@ def new(path: str):
             parts.pop(0)  # remove the root (target) directory name
 
             target_path = os.path.join(root, name)
-            data_path = os.path.join(data, *parts)
+            data_path = data.joinpath(*parts)
 
             if not os.path.exists(data_path):
                 os.makedirs(data_path)
@@ -155,7 +142,7 @@ def delete(name: str):
     being deleted.
     """
     target = core.ensure_bplate_data_dir('boilerplates')
-    bp_path = os.path.join(target, name)
+    bp_path = target / name
     if not os.path.exists(bp_path):
         raise core.click_error('No boilerplate with name %r exists.' % name)
 
@@ -175,7 +162,7 @@ def list_():
     for item in target.iterdir():
         if not item.is_dir() or item.name.startswith('_'):
             continue
-        if not os.path.exists(os.path.join(item, 'bplate_config.json')):
+        if not os.path.exists(item / 'bplate_config.json'):
             continue
 
         click.secho(f'* {item.name}')
@@ -196,19 +183,7 @@ def init(name: str, path: str):
     be created.
     """
     click.echo('Initializing boilerplate...')
-
-    target = core.ensure_bplate_data_dir('boilerplates')
-    data_path = pathlib.Path(os.path.join(target, name))
-    cfg_path = os.path.join(data_path, 'bplate_config.json')
-
-    if not os.path.exists(cfg_path):
-        raise core.click_error('No boilerplate with name %r exists.' % name)
-
-    try:
-        with open(cfg_path, 'r') as f:
-            config = json.loads(f.read())  # type: ignore
-    except Exception as f:
-        raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
+    boilerplate = core.get_boilerplate_info(name)
 
     if not os.path.exists(path):
         click.secho('Creating target directory...')
@@ -217,7 +192,7 @@ def init(name: str, path: str):
     click.secho('Copying files...')
     files_copied = 0
 
-    for root, _, files in os.walk(data_path):
+    for root, _, files in os.walk(boilerplate.data_path):
         for name in files:
             if name in core.DEFAULT_IGNORED_INIT_FILES:
                 continue
@@ -245,27 +220,14 @@ def show(name: str):
 
     The NAME argument represents the boilerplate to show information for.
     """
-    target = core.ensure_bplate_data_dir('boilerplates')
-    cfg_path = os.path.join(target, name, 'bplate_config.json')
-    if not os.path.exists(cfg_path):
-        raise core.click_error('No boilerplate with name %r exists.' % name)
+    boilerplate = core.get_boilerplate_info(name)
+    cfg = boilerplate.config
 
-    try:
-        with open(cfg_path, 'r') as f:
-            config = json.loads(f.read())
-    except Exception as f:
-        raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
-
-    try:
-        name = config['name']
-    except KeyError:
-        raise core.click_error('bplate_config.json does not contain a name key.')
-
-    click.echo(f'Name: {name}')
-    click.echo(f'Description: {config.get("description") or "No description available"}')
-    click.echo(f'Author: {config.get("author") or "No author available"}')
-    click.echo(f'Version: {config.get("version") or "No version available"}')
-    click.echo(f'URL: {config.get("url") or "No URL available"}')
+    click.secho(f'\n{boilerplate.name}\n', fg='blue')
+    click.echo(f'{cfg.description or "No description available"}\n')
+    click.echo(f'Author: {cfg.author or "No author available"}')
+    click.echo(f'Version: {cfg.version or "No version available"}')
+    click.echo(f'URL: {cfg.url or "No URL available"}')
 
 if __name__ == '__main__':
     cli()
