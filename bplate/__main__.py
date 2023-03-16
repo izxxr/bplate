@@ -65,7 +65,7 @@ def new(path: str):
 
     name = None
     config = None
-    cfg_path = os.path.join(target, 'bplate_config.json')
+    cfg_path = target / 'bplate_config.json'
 
     if os.path.exists(cfg_path):
         click.secho('bplate_config.json found in root directory, opening.')
@@ -80,7 +80,7 @@ def new(path: str):
                 click.secho('Config successfully loaded.')
     if not name:
         if config:
-            click.secho('Failed to get boilerplate from bplate_config.json')
+            click.secho('Failed to get boilerplate name from bplate_config.json')
         name = click.prompt('[i] Boilerplate name')
 
     assert name is not None
@@ -100,25 +100,12 @@ def new(path: str):
     data.mkdir()
 
     files_copied = 0
-    ignored_files: Set[str] = set(config.get('ignore_files', []) if config else [])
-    ignored_files = ignored_files.union(core.DEFAULT_IGNORED_FILES)
-
-    for file in ignored_files:
-        # Handle ignored directories
-        # __pycache__/ needs to be changed to __pycache__/*
-        # in order for Path.match() to match it.
-        if file.endswith('/'):
-            ignored_files.remove(file)
-            file += '*'
-        ignored_files.add(file)
+    ignored_patterns: Set[str] = set(config.get('ignore_patterns', []) if config else [])
 
     for root, _, files in os.walk(target):
         for name in files:
-            if name in ignored_files:
-                continue
-            
             file_path = pathlib.Path(os.path.join(root, name))
-            if any(file_path.match(file) for file in ignored_files):
+            if any(file_path.match(pat) for pat in ignored_patterns):
                 continue
 
             # root contains the name of target directory as well
@@ -128,7 +115,7 @@ def new(path: str):
             parts.pop(0)  # remove the root (target) directory name
 
             target_path = os.path.join(root, name)
-            data_path = os.path.join(data, *parts)
+            data_path = data.joinpath(*parts)
 
             if not os.path.exists(data_path):
                 os.makedirs(data_path)
@@ -155,7 +142,7 @@ def delete(name: str):
     being deleted.
     """
     target = core.ensure_bplate_data_dir('boilerplates')
-    bp_path = os.path.join(target, name)
+    bp_path = target / name
     if not os.path.exists(bp_path):
         raise core.click_error('No boilerplate with name %r exists.' % name)
 
@@ -175,7 +162,7 @@ def list_():
     for item in target.iterdir():
         if not item.is_dir() or item.name.startswith('_'):
             continue
-        if not os.path.exists(os.path.join(item, 'bplate_config.json')):
+        if not os.path.exists(item / 'bplate_config.json'):
             continue
 
         click.secho(f'* {item.name}')

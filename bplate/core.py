@@ -23,7 +23,7 @@
 from __future__ import annotations
 
 from typing import Optional, Dict, Any, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import os
 import json
@@ -31,18 +31,12 @@ import click
 import pathlib
 
 __all__ = (
-    'DEFAULT_IGNORED_FILES',
     'DEFAULT_IGNORED_INIT_FILES',
     'BoilerplateInfo',
     'ensure_bplate_data_dir',
     'click_error',
 )
 
-
-DEFAULT_IGNORED_FILES = (
-    '.git/',
-    '__pycache__/',
-)
 
 DEFAULT_IGNORED_INIT_FILES = (
     'bplate_config.json',
@@ -58,7 +52,7 @@ class BoilerplateConfig:
     author: Optional[str] = None
     version: Optional[str] = None
     url: Optional[str] = None
-    ignore_files: Optional[List[str]] = None
+    ignore_patterns: List[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> BoilerplateConfig:
@@ -69,7 +63,7 @@ class BoilerplateConfig:
             author=data.get('author'),
             version=data.get('version'),
             url=data.get('url'),
-            ignore_files=data.get('ignore_files'),
+            ignore_patterns=data.get('ignore_patterns', []),
         )
 
 
@@ -121,7 +115,7 @@ def get_boilerplate_info(name: str) -> BoilerplateInfo:
     """
     target = ensure_bplate_data_dir('boilerplates')
     data_path = pathlib.Path(os.path.join(target, name))
-    cfg_path = os.path.join(data_path, 'bplate_config.json')
+    cfg_path = data_path / 'bplate_config.json'
 
     if not os.path.exists(cfg_path):
         raise click_error('No boilerplate with name %r exists.' % name)
