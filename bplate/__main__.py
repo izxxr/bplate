@@ -73,7 +73,7 @@ def new(path: str):
             with open(cfg_path, 'r') as f:
                 config = json.loads(f.read())
         except Exception as f:
-            raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
+            raise core.click_error('Failed to load bplate_config.json. The file may be malformed or not openable.')
         else:
             name = config.get('name')
             if name:
@@ -196,19 +196,7 @@ def init(name: str, path: str):
     be created.
     """
     click.echo('Initializing boilerplate...')
-
-    target = core.ensure_bplate_data_dir('boilerplates')
-    data_path = pathlib.Path(os.path.join(target, name))
-    cfg_path = os.path.join(data_path, 'bplate_config.json')
-
-    if not os.path.exists(cfg_path):
-        raise core.click_error('No boilerplate with name %r exists.' % name)
-
-    try:
-        with open(cfg_path, 'r') as f:
-            config = json.loads(f.read())  # type: ignore
-    except Exception as f:
-        raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
+    boilerplate = core.get_boilerplate_info(name)
 
     if not os.path.exists(path):
         click.secho('Creating target directory...')
@@ -217,7 +205,7 @@ def init(name: str, path: str):
     click.secho('Copying files...')
     files_copied = 0
 
-    for root, _, files in os.walk(data_path):
+    for root, _, files in os.walk(boilerplate.data_path):
         for name in files:
             if name in core.DEFAULT_IGNORED_INIT_FILES:
                 continue
@@ -245,27 +233,14 @@ def show(name: str):
 
     The NAME argument represents the boilerplate to show information for.
     """
-    target = core.ensure_bplate_data_dir('boilerplates')
-    cfg_path = os.path.join(target, name, 'bplate_config.json')
-    if not os.path.exists(cfg_path):
-        raise core.click_error('No boilerplate with name %r exists.' % name)
+    boilerplate = core.get_boilerplate_info(name)
+    cfg = boilerplate.config
 
-    try:
-        with open(cfg_path, 'r') as f:
-            config = json.loads(f.read())
-    except Exception as f:
-        raise core.click_error('Failed to load blate_config.json. The file may be malformed or not openable.')
-
-    try:
-        name = config['name']
-    except KeyError:
-        raise core.click_error('bplate_config.json does not contain a name key.')
-
-    click.secho(f'\n{name}\n', fg='blue')
-    click.secho(f'{config.get("description") or "No description available"}\n')
-    click.secho(f'Author: {config.get("author") or "No author available"}')
-    click.secho(f'Version: {config.get("version") or "No version available"}')
-    click.secho(f'URL: {config.get("url") or "No URL available"}')
+    click.secho(f'\n{boilerplate.name}\n', fg='blue')
+    click.echo(f'{cfg.description or "No description available"}\n')
+    click.echo(f'Author: {cfg.author or "No author available"}')
+    click.echo(f'Version: {cfg.version or "No version available"}')
+    click.echo(f'URL: {cfg.url or "No URL available"}')
 
 if __name__ == '__main__':
     cli()
