@@ -261,11 +261,11 @@ def show(name: str):
     except KeyError:
         raise core.click_error('bplate_config.json does not contain a name key.')
 
-    click.echo(f'Name: {name}')
-    click.echo(f'Description: {config.get("description") or "No description available"}')
-    click.echo(f'Author: {config.get("author") or "No author available"}')
-    click.echo(f'Version: {config.get("version") or "No version available"}')
-    click.echo(f'URL: {config.get("url") or "No URL available"}')
+    click.secho(f'\n{name}\n', fg='blue')
+    click.secho(f'{config.get("description") or "No description available"}\n')
+    click.secho(f'Author: {config.get("author") or "No author available"}')
+    click.secho(f'Version: {config.get("version") or "No version available"}')
+    click.secho(f'URL: {config.get("url") or "No URL available"}')
 
 if __name__ == '__main__':
     cli()
