@@ -1,7 +1,7 @@
 from setuptools import setup
 
 
-VERSION = "0.2.0a1"
+VERSION = "0.2.0"
 GITHUB = "https://github.com/izxxr/bplate"
 DOCUMENTATION = "https://bplate.readthedocs.io"
 LICENSE = "MIT"
