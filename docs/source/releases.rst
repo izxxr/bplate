@@ -5,6 +5,11 @@ Changelogs
 
 This page documents all the past releases of bplate.
 
+v0.3.0 (alpha)
+~~~~~~~~~~~~~~
+
+- Add the :ref:`dest <customization-dest>` customization option.
+
 v0.2.0
 ~~~~~~
 

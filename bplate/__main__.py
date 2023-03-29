@@ -22,7 +22,7 @@
 
 from __future__ import annotations
 
-from typing import Set
+from typing import Set, List
 from bplate import core, __version__
 
 import click
@@ -93,14 +93,21 @@ def new(path: str):
 
     if config is None:
         click.echo('Creating bplate_config.json...')
+        config = {'name': name}
         with open(cfg_path, 'w') as f:
-            json.dump({'name': name}, f, indent=4)
+            json.dump(config, f, indent=4)
 
     click.secho('Copying files from %s to %s...' % (target, data))
     data.mkdir()
 
     files_copied = 0
-    ignored_patterns: Set[str] = set(config.get('ignore_patterns', []) if config else [])
+    ignored_patterns: Set[str] = set(config.get('ignore_patterns', []))
+    dest = config.get('dest')
+
+    if dest:
+        target = target.joinpath(dest)
+        if not target.exists():
+            raise core.click_error(f'The path {target} does not exist.')
 
     for root, _, files in os.walk(target):
         for name in files:
@@ -108,14 +115,22 @@ def new(path: str):
             if any(file_path.match(pat) for pat in ignored_patterns):
                 continue
 
+            dest_parts = list(pathlib.Path(dest).parts) if dest else []
+
             # root contains the name of target directory as well
             # we only need the names of subdirectories so we will
             # remove the first part of the path.
-            parts = list(pathlib.Path(root).parts)
-            parts.pop(0)  # remove the root (target) directory name
+            root_parts = list(pathlib.Path(root).parts)
+            root_parts.pop(0)  # remove the root (target) directory name
+
+            # this piece of code changes data path to point to the
+            # directory provided by "dest" config option.
+            to_remove: List[str] = [part for part in dest_parts if part in root_parts]
+            for part in to_remove:
+                root_parts.remove(part)
 
             target_path = os.path.join(root, name)
-            data_path = data.joinpath(*parts)
+            data_path = data.joinpath(*root_parts)
 
             if not os.path.exists(data_path):
                 os.makedirs(data_path)

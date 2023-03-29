@@ -99,3 +99,35 @@ Boilerplate Files
     :type:
 
         ``ARRAY`` of ``STRING``
+
+.. _customization-dest:
+
+.. data:: dest
+
+    The path (relative to bplate_config.json) where the boilerplate files
+    are located.
+
+    Use this option if your boilerplate files are not in same directory
+    as your bplate_config.json.
+
+    For example, if all your boilerplate files are in ``data`` folder::
+
+        .
+        ├── my_boilerplate
+        │   ├── bplate_config.json
+        |   ├── README.MD
+        │   └── data
+        │       ├── main.py
+        │       ├── utils.py
+        │       ├── modules/
+        │       └──     example.py
+
+    then you can add to your bplate_config.json::
+
+        {
+            "dest": "data"
+        }
+
+    :type:
+
+        ``STRING``
